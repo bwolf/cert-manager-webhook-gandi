@@ -1,0 +1,13 @@
+name: docker-image
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: jerray/publish-docker-action@latest
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+        registry: docker.pkg.github.com
+        repository: bwolf/cert-manager-webhook-gandi
+        auto_tag: true
