@@ -99,85 +99,56 @@ This webhook has been tested with [cert-manager] v0.13.1 and Kubernetes v0.17.x 
             kubectl get pods -n cert-manager --watch
             kubectl logs -n cert-manager cert-manager-webhook-gandi-XYZ
 
-6. Create a staging issuer (email addresses with the suffix `example.com` are forbidden):
 
-        cat << EOF | sed "s/invalid@example.com/$email/" | kubectl apply -f -
-        apiVersion: cert-manager.io/v1alpha2
-        kind: Issuer
-        metadata:
-          name: letsencrypt-staging
-          namespace: default
-        spec:
-          acme:
-            # The ACME server URL
-            server: https://acme-staging-v02.api.letsencrypt.org/directory
-            # Email address used for ACME registration
-            email: invalid@example.com
-            # Name of a secret used to store the ACME account private key
-            privateKeySecretRef:
-              name: letsencrypt-staging
-            solvers:
-            - dns01:
-                webhook:
-                  groupName: acme.bwolf.me
-                  solverName: gandi
-                  config:
-                    apiKeySecretRef:
-                      key: api-token
-                      name: gandi-credentials
-        EOF
+6. Create a staging issuer (email addresses with the suffix `example.com` are forbidden).
+
+    See [letsencrypt-staging-issuer.yaml](examples/issuers/letsencrypt-staging-issuer.yaml)
+
+    Don't forget to replace email `invalid@example.com`.
 
     Check status of the Issuer:
 
         kubectl describe issuer letsencrypt-staging
 
+    You can deploy a ClusterIssuer instead : see [letsencrypt-staging-clusterissuer.yaml](examples/issuers/letsencrypt-staging-clusterissuer.yaml)
+
     *Note*: The production Issuer is [similar][ACME documentation].
 
-7. Issue a [Certificate] for your `$DOMAIN`:
+7. Issue a [Certificate] for your domain: see [certif-example-com.yaml](examples/certificates/certif-example-com.yaml)
 
-        cat << EOF | sed "s/example-com/$DOMAIN/" | kubectl apply -f -
-        apiVersion: cert-manager.io/v1alpha2
-        kind: Certificate
-        metadata:
-          name: example-com
-        spec:
-          dnsNames:
-          - example-com
-          issuerRef:
-            name: letsencrypt-staging
-          secretName: example-com-tls
-        EOF
+    Replace `your-domain` and `your.domain` in the [certif-example-com.yaml](examples/certificates/certif-example-com.yaml)
+
+    Create the Certificate:
+
+        kubectl apply -f ./examples/certificates/certif-example-com.yaml
 
     Check the status of the Certificate:
 
-        kubectl describe certificate $DOMAIN
+        kubectl describe certificate example-com
 
     Display the details like the common name and subject alternative names:
 
-        kubectl get secret $DOMAIN-tls -o yaml
+        kubectl get secret example-com-tls -o yaml
 
-8. Issue a wildcard Certificate for your `$DOMAIN`:
+    If you deployed a ClusterIssuer : use [certif-example-com-clusterissuer.yaml](examples/certificates/certif-example-com-clusterissuer.yaml)
 
-        cat << EOF | sed "s/example-com/$DOMAIN/" | kubectl apply -f -
-        apiVersion: cert-manager.io/v1alpha2
-        kind: Certificate
-        metadata:
-          name: wildcard-example-com
-        spec:
-          dnsNames:
-          - '*.example-com'
-          issuerRef:
-            name: letsencrypt-staging
-          secretName: wildcard-example-com-tls
-        EOF
+8. Issue a wildcard Certificate for your domain: see [certif-wildcard-example-com.yaml](examples/certificates/certif-wildcard-example-com.yaml)
+
+    Replace `your-domain` and `your.domain` in the [certif-wildcard-example-com.yaml](examples/certificates/certif-wildcard-example-com.yaml)
+
+    Create the Certificate:
+
+        kubectl apply -f ./examples/certificates/certif-wildcard-example-com.yaml
 
     Check the status of the Certificate:
 
-        kubectl describe certificate $DOMAIN
+        kubectl describe certificate wildcard-example-com
 
     Display the details like the common name and subject alternative names:
 
-        kubectl get secret wildcard-$DOMAIN-tls -o yaml
+        kubectl get secret wildcard-example-com-tls -o yaml
+
+    If you deployed a ClusterIssuer : use [certif-wildcard-example-com-clusterissuer.yaml](examples/certificates/certif-wildcard-example-com-clusterissuer.yaml)
 
 99. Uninstall this webhook:
 
