@@ -1,6 +1,10 @@
 FROM golang:1.13-alpine AS build_deps
 
-RUN apk add --no-cache git bzr
+RUN apk add --no-cache git alpine-sdk wget make python2 python2-dev
+RUN wget https://launchpad.net/bzr/2.7/2.7.0/+download/bzr-2.7.0.tar.gz && \
+    tar -xf bzr-2.7.0.tar.gz && \
+    cd bzr-2.7.0/ && \
+    python setup.py install
 
 WORKDIR /workspace
 ENV GO111MODULE=on
